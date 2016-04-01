@@ -1,0 +1,113 @@
+# Parikh Shivam
+# ICSI 333
+# Project 5a
+# Lab: Wed 9:20am
+
+
+
+.data
+
+prompt: .asciiz "Enter an Integer: "
+
+printOnes: .asciiz "Total of leading Ones: "
+printZeros: .asciiz "Total of leading Zeros: "
+test: .asciiz "Bang"
+nl: .asciiz "\n"
+
+.text
+.globl main
+
+
+    main: li $15, 0
+
+          li $v0, 4			
+
+          la $a0, prompt	      
+          syscall
+	  
+	  li $v0, 5			
+	  syscall
+
+          move $12, $v0
+
+          li $10, -1
+
+
+          beqz $12, zero
+
+          beq $12, $10, negOne
+
+          bgtz $12, positive
+
+          blt $12, $0,  negative
+          
+          li $v0, 10
+          syscall
+
+
+          zero:li $v0, 4
+               la $a0, printZeros
+               syscall
+               li $a0, 32
+               li $v0, 1
+               syscall
+               li $v0, 4
+               la $a0, nl
+               syscall
+               
+               li $v0, 10
+               syscall
+          
+           negOne: li $v0, 4
+                   la $a0, printOnes
+                   syscall
+                   li $a0, 32
+                   li $v0, 1
+                   syscall
+                   li $v0, 4
+                   la $a0, nl
+                   syscall
+                   
+                   li $v0, 10
+                   syscall
+
+                     
+           positive: bltz $12, endif
+                     sll $12, $12, 1
+                     add $15, $15, 1
+                     j positive
+           
+           endif: li $v0, 4
+                  la $a0, printZeros
+                  syscall
+                  move $a0, $15
+                  li $v0, 1
+                  syscall
+                  li $v0, 4
+                  la $a0, nl
+                  syscall
+
+                  li $v0, 10
+                  syscall
+
+          negative: move $a0, $15
+                    li $v0, 1
+                    syscall
+                    bgt $12, $0, endifneg
+                    sll $12, $12, 1
+                    add $15, $15, 1
+                    j negative
+
+           endifneg: li $v0, 4
+                     la $a0, printOnes
+                     syscall
+                     move $a0, $15
+                     li $v0, 1
+                     syscall
+                     li $v0, 4
+                     la $a0, nl
+                     syscall
+                     
+                     li $v0, 10
+                     syscall      
+

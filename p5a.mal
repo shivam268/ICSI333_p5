@@ -1,0 +1,134 @@
+# Parikh Shivam
+# ICSI 333
+# Project 5a
+# Lab: Wed 9:20am
+
+
+
+.data
+
+prompt: .asciiz "Enter an Integer: "                     #text to prompt user for an int value
+
+printOnes: .asciiz "Total Number of Leading Ones: "	 #text to print before leading 1s
+printZeros: .asciiz "Total Number of Leading Zeros: "	 #text to print before leading 0s
+
+nl: .asciiz "\n"					 #new line character
+
+.text							 #text segment starts
+.globl main						 #declare main as globl
+
+
+    main: li $15, 0					 #loads zero into register 15. because $15 will hold total for 1s and 0s
+
+          li $v0, 4					 #prompt user for integer input and store it into $v0
+
+          la $a0, prompt	      				
+          syscall
+	  
+	  li $v0, 5
+	  syscall
+
+          move $12, $v0					 #move integer value into register so that it's easier to use
+
+          li $10, -1					 #$10 will hold -1, because we have to compare it with integer entered at some point
+
+
+          beqz $12, zero				 # if input is equals to 0 then calls zero method
+
+          beq $12, $10, negOne				 # if input is equal to -1 then calls negOne method
+
+          bgtz $12, positive				 # if the input is positive then call positive method
+
+          blt $12, $0, negative				 # if input is negative then call negative method 
+
+
+#this method will basically print that
+#input have 32 leading zeros
+
+          zero:li $v0, 4 				 # 4 - to print string				 
+               la $a0, printZeros			 # prints string held by printZeros asciiz
+               syscall
+               li $a0, 32				 # load 32 in
+               li $v0, 1				 # 1 - to print int
+               syscall
+               li $v0, 4
+               la $a0, nl
+               syscall
+               
+               li $v0, 10				 # end the program
+               syscall
+          
+# negOne method will only be called if there is -1 is been inputed
+# it will print out the total number of leading ones 32
+
+           negOne: li $v0, 4
+                   la $a0, printOnes 			# prints the string saying leading ones
+                   syscall
+                   li $a0, 32				# print int 32
+                   li $v0, 1
+                   syscall
+                   li $v0, 4
+                   la $a0, nl				# print new line character
+                   syscall
+                   
+                   li $v0, 10				# end the program
+                   syscall
+
+
+# positive method will be called when there is a positive integer is being entered
+# this method will shift the bits to the left until 
+# it the number becomes less then zero
+# also keeps count of number of times the shift left occured
+# and that number is the number of leading zeors
+
+
+           positive: bltz $12, endif			# if it's negative now, it will call endif		
+                     sll $12, $12, 1
+                     add $15, $15, 1
+                     j positive
+
+# this function basically prints out the string
+# and prints the number of leading zeros found by the previous method
+           
+           endif: li $v0, 4
+                  la $a0, printZeros
+                  syscall
+                  move $a0, $15
+                  li $v0, 1
+                  syscall
+                  li $v0, 4
+                  la $a0, nl
+                  syscall
+
+                  li $v0, 10				# end the program
+                  syscall
+
+
+# this function will be called when there is a negative int has been entered
+# this method will shift the bits to the left until
+# it the number becomes greater or equal to zero
+# also keeps count of number of times the shift left occured
+# and that number is the number of leading ones
+          
+	  negative: bge $12, $0, endifneg		# if the number becomes greater or equal to 0-it ends
+                    sll $12, $12, 1
+                    add $15, $15, 1
+                    j negative
+
+
+# this function basically prints out the string
+# and prints the number of leading ones found by the previous method
+
+           endifneg: li $v0, 4
+                     la $a0, printOnes
+                     syscall
+                     move $a0, $15
+                     li $v0, 1
+                     syscall
+                     li $v0, 4
+                     la $a0, nl
+                     syscall
+
+                     li $v0, 10				# end the program
+                     syscall      
+

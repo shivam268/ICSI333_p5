@@ -1,0 +1,169 @@
+# Parikh Shivam
+# ICSI 333
+# project 5b
+# Lab: Wed 9:20am
+
+.data
+
+promptforstring: .asciiz "Input String: "
+promptforpattern: .asciiz "Input Pattern: "
+
+exactmatch: .asciiz "Yes, there is a match at: "
+nomatch: .asciiz "No, there is no match. "
+partiallength: .asciiz "Length of longest partial match: "
+partialindex: .asciiz "index of first longest partial match occurs: "
+
+nl: .asciiz "\n"
+
+text: .space 81				# space for string
+pat: .space 11				# space for pattern
+
+
+.text
+.globl main
+
+main:
+li $10, 1				# $10 will hold 
+move $12, $0 				# this register will hold index
+li $13, 1			 	# this register will hold length of match
+
+
+# prompt for string
+# store that onto text
+
+li $v0, 4
+la $a0, promptforstring			# prompts for string
+syscall
+
+la $a0, text				# stores entered string on to text
+li $a1, 81				
+li $v0, 8				# 8- to read_string
+syscall
+
+# prompt for pattern string
+# store that onto pat
+
+li $v0, 4				# prompts for pattern
+la $a0, promptforpattern		
+syscall
+
+la $a0, pat				# stores pattern string onto pat
+li $a1, 11				 
+li $v0, 8				# 8- to read_string
+syscall		
+
+# load addresses for text string and pattern string
+# now $t0 and $t1 points to index 0 of "text" and "pat" respectively
+la $t0, text
+la $t1, pat
+
+
+# this loop will point to first element of both strings
+# and tries to match first element of pattern with any elements of string
+# if it founds the match it calls comparematch-once it founds match, it is decided that there is atleast a 
+# partial match. comparematch method will decide that is it only partial or full match
+
+loop:
+move $11, $12
+lbu $t3, 0($t0)			# load byte
+lbu $t4, 0($t1)			# load byte
+beq $t3, $t4, comparematch	# compare them
+beq $t3, 10, nomatchfound	# if it reaches to new line character
+addi $t0, $t0, 1		# point to next element on string
+j loop				# jump to loop again
+syscall
+
+
+
+# this method will check wether it is complete match or just partial match
+# if it reaches new line character before it fails to match any elemetns of pattern it is a full match
+# if it doesn't match any element but there are elements left it will recall loop
+
+
+comparematch:
+add $12, $12, $10		# index counter
+
+addi $t0, $t0, 1		# points to next element on string
+addi $t1, $t1, 1		# points to next element on pattern string
+lbu $t3, 0($t0)			# load byte into $t3
+lbu $t4, 0($t1)			# load byte into $t4
+beq $t4, 10, fullmatch		# if pattern string pointer reaches to newline char then it's full match
+beq $t3, 10, partialmatch	# if string reaches to new line char then there is still a partial match
+beq $t3, $t4, count		# update partial length counter
+
+bne $t3, $t4, loop		# if it's not equal then jump to loop again
+syscall
+
+
+
+# this method will increase count by 1
+# which keeps track of partial length
+
+count:
+add $13, $13, $10
+j comparematch			# jump back to comparematch
+syscall
+
+
+
+# fullmatch method will print out message saying there is a full match
+# and the starting index of full match
+
+fullmatch:
+li $v0, 4
+la $a0, exactmatch
+syscall
+move $a0, $12
+li $v0, 1
+syscall
+li $v0, 4
+la $a0, nl			# new line char to make it look organize
+syscall
+j end				# jump to end
+syscall
+
+
+# partial match will print out messages saying partial match- index and length
+# it will print index of the match and length of the match
+
+partialmatch:
+li $v0, 4
+la $a0, partiallength		# message for partial length
+syscall
+move $a0, $13			# prints length
+li $v0, 1
+syscall
+li $v0, 4
+la $a0, nl			# prints new line char
+syscall
+li $v0, 4
+la $a0, partialindex		# message for partial index
+syscall
+move $a0, $12			# prints index
+li $v0, 1
+syscall
+li $v0, 4
+la $a0, nl			# prints new line character to make it look organized 
+syscall
+j end				# jump to end
+syscall
+
+
+
+# this method will simply print message saying there was no match found
+
+nomatchfound:
+li $v0, 4
+la $a0, nomatch			# print no match found string
+syscall
+li $v0, 4
+la $a0, nl			# prints new line character
+syscall
+j end				# jump to end
+
+end:				# end method basically make program to stop
+li $v0, 10
+syscall
+
+li $v0, 10
+syscall

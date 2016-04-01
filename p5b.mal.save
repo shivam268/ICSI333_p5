@@ -1,0 +1,131 @@
+.data
+
+promptforstring: .asciiz "Input String: "
+promptforpattern: .asciiz "Input Pattern: "
+
+exactmatch: .asciiz "Yes, there is a match at: "
+nomatch: .asciiz "No, there is no match. "
+partiallength: .asciiz "Length of longest partial match: "
+partialindex: .asciiz "index of first longest partial match occurs: "
+
+nl: .asciiz "\n"
+
+text: .space 81
+pat: .space 11
+
+
+.text
+.globl main
+
+main:
+li $10, 1
+move $12, $0 # this register will hold index
+li $13, 1 # this register will hold length of match
+
+
+
+# prompt for string
+# store that onto text
+
+li $v0, 4
+la $a0, promptforstring
+syscall
+
+la $a0, text
+li $a1, 81
+li $v0, 8
+syscall
+
+# prompt for pattern string
+# store that onto pat
+
+li $v0, 4
+la $a0, promptforpattern
+syscall
+
+la $a0, pat
+li $a1, 11
+li $v0, 8
+syscall
+
+# load addresses for text string and pattern string
+la $t0, text
+la $t1, pat
+
+loop:
+move $a0, $12
+li $v0, 1
+syscall
+lbu $t3, 0($t0)
+lbu $t4, 0($t1)
+beq $t3, $t4, comparematch
+beq $t3, 10, nomatchfound
+addi $t0, $t0, 1
+addi $12, $12, 1
+j loop
+syscall
+
+
+comparematch:
+addi $12, $12, 1
+addi $t0, $t0, 1
+addi $t1, $t1, 1
+lbu $t3, 0($t0)
+lbu $t4, 0($t1)
+beq $t4, 10, fullmatch
+beq $t3, 10, partialmatch
+beq $t3, $t4, count
+bne $t3, $t4, loop
+syscall
+
+
+count:
+add $13, $13, $10
+move $a0, $13
+li $v0, 1
+syscall
+j comparematch
+syscall
+
+fullmatch:
+li $v0, 4
+la $a0, exactmatch
+syscall
+move $a0, $12
+li $v0, 1
+syscall
+j end
+syscall
+
+
+partialmatch:
+li $v0, 4
+la $a0, partiallength
+syscall
+move $a0, $13
+li $v0, 1
+syscall
+li $v0, 4
+la $a0, nl
+syscall
+li $v0, 4
+la $a0, partialindex
+syscall
+move $a0, $12
+li $v0, 1
+syscall
+j end
+syscall
+
+nomatchfound:
+li $v0, 4
+la $a0, nomatch
+syscall
+j end
+
+end:
+li $v0, 10
+syscall
+
+li $v0, 10
+syscall
